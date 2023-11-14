@@ -76,7 +76,8 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
    * Gets the value associated with the specified key from the Verkle Trie.
    *
    * @param key The key to retrieve the value for.
-   * @return An optional containing the value if found, or an empty optional if not found.
+   * @return An optional containing the value if found, or an empty optional if
+   *         not found.
    */
   @Override
   public Optional<V> get(final K key) {
@@ -87,7 +88,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   /**
    * Inserts a key-value pair into the Verkle Trie.
    *
-   * @param key The key to insert.
+   * @param key   The key to insert.
    * @param value The value to associate with the key.
    */
   @Override
@@ -134,7 +135,8 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   /**
    * Commits the Verkle Trie using the provided node updater.
    *
-   * @param nodeUpdater The node updater for storing the changes in the Verkle Trie.
+   * @param nodeUpdater The node updater for storing the changes in the Verkle
+   *                    Trie.
    */
   @Override
   public void commit(final NodeUpdater nodeUpdater) {
@@ -145,7 +147,8 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   /**
    * Returns the DOT representation of the entire Verkle Trie.
    *
-   * @param showRepeatingEdges if true displays repeating edges; if false does not.
+   * @param showRepeatingEdges if true displays repeating edges; if false does
+   *                           not.
    *
    * @return The DOT representation of the Verkle Trie.
    */
@@ -159,7 +162,8 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   /**
    * Returns the DOT representation of the entire Verkle Trie.
    *
-   * <p> The representation does not contain repeating edges.
+   * <p>
+   * The representation does not contain repeating edges.
    *
    * @return The DOT representation of the Verkle Trie.
    */

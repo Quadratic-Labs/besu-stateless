@@ -25,25 +25,29 @@ import org.apache.tuweni.bytes.Bytes32;
 public interface VerkleTrie<K, V> {
 
   /**
-   * Returns an {@code Optional} of value mapped to the hash if it exists; otherwise empty.
+   * Returns an {@code Optional} of value mapped to the hash if it exists;
+   * otherwise empty.
    *
    * @param key The key for the value.
-   * @return an {@code Optional} of value mapped to the hash if it exists; otherwise empty
+   * @return an {@code Optional} of value mapped to the hash if it exists;
+   *         otherwise empty
    */
   Optional<V> get(K key);
 
   /**
-   * Updates the value mapped to the specified key, creating the mapping if one does not already
+   * Updates the value mapped to the specified key, creating the mapping if one
+   * does not already
    * exist.
    *
-   * @param key The key that corresponds to the value to be updated.
+   * @param key   The key that corresponds to the value to be updated.
    * @param value The value to associate the key with.
    * @return Optional previous value before replacement if it exists.
    */
   Optional<V> put(K key, V value);
 
   /**
-   * Deletes the value mapped to the specified key, if such a value exists (Optional operation).
+   * Deletes the value mapped to the specified key, if such a value exists
+   * (Optional operation).
    *
    * @param key The key of the value to be deleted.
    */
@@ -62,5 +66,4 @@ public interface VerkleTrie<K, V> {
    * @param nodeUpdater used to store the node values
    */
   void commit(NodeUpdater nodeUpdater);
-
 }

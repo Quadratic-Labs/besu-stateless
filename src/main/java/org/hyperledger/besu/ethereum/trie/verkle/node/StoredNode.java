@@ -28,7 +28,8 @@ import org.apache.tuweni.bytes.Bytes32;
 /**
  * Represents a regular node that can possibly be stored in storage.
  *
- * <p>StoredNodes wrap regular nodes and loads them lazily from storage as needed.
+ * <p>
+ * StoredNodes wrap regular nodes and loads them lazily from storage as needed.
  *
  * @param <V> The type of the node's value.
  */
@@ -43,7 +44,7 @@ public class StoredNode<V> implements Node<V> {
    * Constructs a new StoredNode at location.
    *
    * @param nodeFactory The node factory for creating nodes from storage.
-   * @param location The location in the tree.
+   * @param location    The location in the tree.
    */
   public StoredNode(final NodeFactory<V> nodeFactory, final Bytes location) {
     this.location = location;
@@ -55,7 +56,7 @@ public class StoredNode<V> implements Node<V> {
    * Accept a visitor to perform operations on the node based on a provided path.
    *
    * @param visitor The visitor to accept.
-   * @param path The path associated with a node.
+   * @param path    The path associated with a node.
    * @return The result of visitor's operation.
    */
   @Override
@@ -175,7 +176,8 @@ public class StoredNode<V> implements Node<V> {
    */
   @Override
   public String toDot(Boolean showRepeatingEdges) {
-    String result = getClass().getSimpleName() + getLocation().orElse(Bytes.EMPTY) + "[location=\"" + getLocation().orElse(Bytes.EMPTY) + "\"]\n";
+    String result = getClass().getSimpleName() + getLocation().orElse(Bytes.EMPTY) + "[location=\""
+        + getLocation().orElse(Bytes.EMPTY) + "\"]\n";
     return result;
   }
 

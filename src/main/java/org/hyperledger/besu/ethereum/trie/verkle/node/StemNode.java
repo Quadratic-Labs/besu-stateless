@@ -30,7 +30,9 @@ import org.apache.tuweni.rlp.RLPWriter;
 /**
  * Represents a stem node in the Verkle Trie.
  *
- * <p>StemNodes are nodes storing the stem of the key, and is the root of the suffix to value trie.
+ * <p>
+ * StemNodes are nodes storing the stem of the key, and is the root of the
+ * suffix to value trie.
  *
  * @param <V> The type of the node's value.
  */
@@ -47,15 +49,15 @@ public class StemNode<V> extends BranchNode<V> {
   /**
    * Constructs a new StemNode with non-optional parameters.
    *
-   * @param location The location in the tree.
-   * @param stem Node's stem.
-   * @param hash Node's vector commitment's hash.
-   * @param commitment Node's vector commitment.
-   * @param leftHash Hash of vector commitment to left values.
-   * @param leftCommitment Vector commitment to left values.
-   * @param rightHash Hash of vector commitment to right values.
+   * @param location        The location in the tree.
+   * @param stem            Node's stem.
+   * @param hash            Node's vector commitment's hash.
+   * @param commitment      Node's vector commitment.
+   * @param leftHash        Hash of vector commitment to left values.
+   * @param leftCommitment  Vector commitment to left values.
+   * @param rightHash       Hash of vector commitment to right values.
    * @param rightCommitment Vector commitment to right values.
-   * @param children The list of children nodes.
+   * @param children        The list of children nodes.
    */
   public StemNode(
       final Bytes location,
@@ -78,15 +80,15 @@ public class StemNode<V> extends BranchNode<V> {
   /**
    * Constructs a new StemNode with optional parameters.
    *
-   * @param location Optional location in the tree.
-   * @param stem Node's stem.
-   * @param hash Optional node's vector commitment's hash.
-   * @param commitment Optional node's vector commitment.
-   * @param leftHash Optional hash of vector commitment to left values.
-   * @param leftCommitment Optional vector commitment to left values.
-   * @param rightHash Optional hash of vector commitment to right values.
+   * @param location        Optional location in the tree.
+   * @param stem            Node's stem.
+   * @param hash            Optional node's vector commitment's hash.
+   * @param commitment      Optional node's vector commitment.
+   * @param leftHash        Optional hash of vector commitment to left values.
+   * @param leftCommitment  Optional vector commitment to left values.
+   * @param rightHash       Optional hash of vector commitment to right values.
    * @param rightCommitment Optional vector commitment to right values.
-   * @param children The list of children nodes.
+   * @param children        The list of children nodes.
    */
   public StemNode(
       final Optional<Bytes> location,
@@ -110,7 +112,7 @@ public class StemNode<V> extends BranchNode<V> {
    * Constructs a new BranchNode with non-optional parameters.
    *
    * @param location The location in the tree.
-   * @param stem Node's stem.
+   * @param stem     Node's stem.
    */
   public StemNode(final Bytes location, final Bytes stem) {
     super(location);
@@ -128,7 +130,7 @@ public class StemNode<V> extends BranchNode<V> {
    * Accepts a visitor for path-based operations on the node.
    *
    * @param visitor The path node visitor.
-   * @param path The path associated with a node.
+   * @param path    The path associated with a node.
    * @return The result of the visitor's operation.
    */
   @Override
@@ -223,11 +225,11 @@ public class StemNode<V> extends BranchNode<V> {
   /**
    * Creates a new node by replacing all its commitments
    *
-   * @param hash Node's vector commitment hash
-   * @param commitment Node's vector commitment
-   * @param leftHash Node's left vector commitment hash
-   * @param leftCommitment Node's left vector commitment
-   * @param rightHash Node's right vector commitment hash
+   * @param hash            Node's vector commitment hash
+   * @param commitment      Node's vector commitment
+   * @param leftHash        Node's left vector commitment hash
+   * @param leftCommitment  Node's left vector commitment
+   * @param rightHash       Node's right vector commitment hash
    * @param rightCommitment Node's right vector commitment
    * @return StemNode with new commitments.
    */
@@ -260,15 +262,14 @@ public class StemNode<V> extends BranchNode<V> {
     if (encodedValue.isPresent()) {
       return encodedValue.get();
     }
-    List<Bytes> values =
-        Arrays.asList(
-            getStem(),
-            (Bytes) getHash().get(),
-            (Bytes) getCommitment().get(),
-            (Bytes) getLeftHash().get(),
-            (Bytes) getLeftCommitment().get(),
-            (Bytes) getRightHash().get(),
-            (Bytes) getRightCommitment().get());
+    List<Bytes> values = Arrays.asList(
+        getStem(),
+        (Bytes) getHash().get(),
+        (Bytes) getCommitment().get(),
+        (Bytes) getLeftHash().get(),
+        (Bytes) getLeftCommitment().get(),
+        (Bytes) getRightHash().get(),
+        (Bytes) getRightCommitment().get());
     Bytes result = RLP.encodeList(values, RLPWriter::writeValue);
     this.encodedValue = Optional.of(result);
     return result;
@@ -298,26 +299,25 @@ public class StemNode<V> extends BranchNode<V> {
     return stemValue.slice(0, 31);
   }
 
-
   @Override
   public String toDot(Boolean showRepeatingEdges) {
     StringBuilder result = new StringBuilder()
-            .append(getClass().getSimpleName()).append(getLocation().orElse(Bytes.EMPTY))
-            .append("[location=\"").append(getLocation().orElse(Bytes.EMPTY))
-            .append("\", stem=\"").append(getStem())
-            .append("\", leftCommitment=\"").append(getLeftCommitment().orElse(Bytes32.ZERO))
-            .append("\", rightCommitment=\"").append(getRightCommitment().orElse(Bytes32.ZERO)).append("\"]\n");
+        .append(getClass().getSimpleName()).append(getLocation().orElse(Bytes.EMPTY))
+        .append("[location=\"").append(getLocation().orElse(Bytes.EMPTY))
+        .append("\", stem=\"").append(getStem())
+        .append("\", leftCommitment=\"").append(getLeftCommitment().orElse(Bytes32.ZERO))
+        .append("\", rightCommitment=\"").append(getRightCommitment().orElse(Bytes32.ZERO)).append("\"]\n");
 
     for (Node<V> child : getChildren()) {
-      String edgeString = getClass().getSimpleName() + getLocation().orElse(Bytes.EMPTY) + " -> " + child.getClass().getSimpleName()
-              + child.getLocation().orElse(Bytes.EMPTY) + "\n";
+      String edgeString = getClass().getSimpleName() + getLocation().orElse(Bytes.EMPTY) + " -> "
+          + child.getClass().getSimpleName()
+          + child.getLocation().orElse(Bytes.EMPTY) + "\n";
 
-      if(showRepeatingEdges || !result.toString().contains(edgeString)) {
+      if (showRepeatingEdges || !result.toString().contains(edgeString)) {
         result.append(edgeString);
       }
       result.append(child.toDot(showRepeatingEdges));
     }
     return result.toString();
   }
-
 }
