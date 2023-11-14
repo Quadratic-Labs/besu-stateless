@@ -159,7 +159,7 @@ public class InternalNode<V> extends BranchNode<V> {
    * @return DOT representation of the InternalNode.
    */
   @Override
-  public String toDot() {
+  public String toDot(Boolean showRepeatingEdges) {
     StringBuilder result = new StringBuilder()
             .append(getClass().getSimpleName()).append(getLocation().orElse(Bytes.EMPTY))
             .append("[location=\"").append(getLocation().orElse(Bytes.EMPTY))
@@ -169,10 +169,10 @@ public class InternalNode<V> extends BranchNode<V> {
       String edgeString = getClass().getSimpleName() + getLocation().orElse(Bytes.EMPTY) + " -> " + child.getClass().getSimpleName()
               + child.getLocation().orElse(Bytes.EMPTY) + "\n";
 
-      if(!result.toString().contains(edgeString)) {
+      if(showRepeatingEdges || !result.toString().contains(edgeString)) {
         result.append(edgeString);
       }
-      result.append(child.toDot());
+      result.append(child.toDot(showRepeatingEdges));
     }
     return result.toString();
   }
