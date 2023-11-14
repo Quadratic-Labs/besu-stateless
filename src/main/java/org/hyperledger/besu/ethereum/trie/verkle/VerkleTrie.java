@@ -62,10 +62,4 @@ public interface VerkleTrie<K, V> {
    */
   void commit(NodeUpdater nodeUpdater);
 
-  /**
-   * Returns the DOT representation of the entire Verkle Trie.
-   *
-   * @return The DOT representation of the Verkle Trie.
-   */
-
 }
