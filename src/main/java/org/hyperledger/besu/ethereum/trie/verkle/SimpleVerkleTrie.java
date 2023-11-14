@@ -136,13 +136,28 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   /**
    * Returns the DOT representation of the entire Verkle Trie.
    *
+   * @param showRepeatingEdges if true displays repeating edges; if false does not.
+   *
    * @return The DOT representation of the Verkle Trie.
    */
-
   public String toDotTree(Boolean showRepeatingEdges) {
     StringBuilder result = new StringBuilder("digraph VerkleTrie {\n");
     Node<V> root = getRoot();
     result.append(root.toDot(showRepeatingEdges));
+    return result.append("}\n").toString();
+  }
+
+  /**
+   * Returns the DOT representation of the entire Verkle Trie.
+   *
+   * <p> The representation does not contain repeating edges.
+   *
+   * @return The DOT representation of the Verkle Trie.
+   */
+  public String toDotTree() {
+    StringBuilder result = new StringBuilder("digraph VerkleTrie {\n");
+    Node<V> root = getRoot();
+    result.append(root.toDot());
     return result.append("}\n").toString();
   }
 }

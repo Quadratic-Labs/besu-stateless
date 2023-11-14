@@ -33,7 +33,7 @@ public class SimpleVerkleTrieTest {
     Bytes32 value = Bytes32.fromHexString("0x1000000000000000000000000000000000000000000000000000000000000000");
     trie.put(key, value);
 
-    System.out.println(trie.toDotTree(false));
+    System.out.println(trie.toDotTree());
   }
 
 
@@ -48,7 +48,7 @@ public class SimpleVerkleTrieTest {
     trie.put(key1, value1);
     trie.put(key2, value2);
 
-    System.out.println(trie.toDotTree(false));
+    System.out.println(trie.toDotTree());
   }
   @Test
   public void testToDotTrieOneValueRepeatingEdges() {

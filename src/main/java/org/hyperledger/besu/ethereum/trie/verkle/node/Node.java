@@ -134,4 +134,15 @@ public interface Node<V> {
    */
   String toDot(Boolean showRepeatingEdges);
 
+  /**
+   * Generates DOT representation for the Node.
+   *
+   * <p> Representation does not contain repeating edges.
+   *
+   * @return DOT representation of the Node.
+   */
+  default String toDot() {
+    return toDot(false);
+  }
+
 }
