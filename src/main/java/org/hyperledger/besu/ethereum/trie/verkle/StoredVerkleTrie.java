@@ -16,6 +16,7 @@
 package org.hyperledger.besu.ethereum.trie.verkle;
 
 import org.hyperledger.besu.ethereum.trie.verkle.factory.NodeFactory;
+import org.hyperledger.besu.ethereum.trie.verkle.node.Node;
 import org.hyperledger.besu.ethereum.trie.verkle.node.NullNode;
 
 import org.apache.tuweni.bytes.Bytes;
@@ -32,4 +33,5 @@ public class StoredVerkleTrie<K extends Bytes, V extends Bytes> extends SimpleVe
     super(nodeFactory.retrieve(Bytes.EMPTY, null).orElse(NullNode.instance()));
     this.nodeFactory = nodeFactory;
   }
+
 }
