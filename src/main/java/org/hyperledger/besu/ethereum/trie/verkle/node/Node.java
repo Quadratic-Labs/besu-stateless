@@ -125,4 +125,12 @@ public interface Node<V> {
    * @return A string representation of the node.
    */
   String print();
+
+  /**
+   * Generates DOT representation for the node.
+   *
+   * @return DOT representation of the node.
+   */
+  String toDot();
+
 }

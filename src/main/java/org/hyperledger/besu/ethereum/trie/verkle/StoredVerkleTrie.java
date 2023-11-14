@@ -38,4 +38,5 @@ public class StoredVerkleTrie<K extends Bytes, V extends Bytes> extends SimpleVe
     super(nodeFactory.retrieve(Bytes.EMPTY, null));
     this.nodeFactory = nodeFactory;
   }
+
 }

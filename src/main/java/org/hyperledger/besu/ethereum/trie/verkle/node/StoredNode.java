@@ -168,6 +168,17 @@ public class StoredNode<V> implements Node<V> {
     return String.format("(stored) %s", node.print());
   }
 
+  /**
+   * Generates DOT representation for the StoredNode.
+   *
+   * @return DOT representation of the StoredNode.
+   */
+  @Override
+  public String toDot() {
+    String result = getClass().getSimpleName() + getLocation().orElse(Bytes.EMPTY) + "[location=\"" + getLocation().orElse(Bytes.EMPTY) + "\"]\n";
+    return result;
+  }
+
   private Node<V> load() {
     if (loadedNode.isEmpty()) {
       loadedNode = nodeFactory.retrieve(location, null);

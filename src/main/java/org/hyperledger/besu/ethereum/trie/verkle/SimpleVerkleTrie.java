@@ -141,4 +141,17 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
     root = root.accept(new HashVisitor<V>(), Bytes.EMPTY);
     root = root.accept(new CommitVisitor<V>(nodeUpdater), Bytes.EMPTY);
   }
+
+  /**
+   * Returns the DOT representation of the entire Verkle Trie.
+   *
+   * @return The DOT representation of the Verkle Trie.
+   */
+
+  public String toDotTree() {
+    StringBuilder result = new StringBuilder("digraph VerkleTrie {\n");
+    Node<V> root = getRoot();
+    result.append(root.toDot());
+    return result.append("}\n").toString();
+  }
 }
