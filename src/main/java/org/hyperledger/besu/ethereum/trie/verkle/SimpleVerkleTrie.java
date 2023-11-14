@@ -170,7 +170,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   public String toDotTree() {
     StringBuilder result = new StringBuilder("digraph VerkleTrie {\n");
     Node<V> root = getRoot();
-    result.append(root.toDot());
+    result.append(root.toDot(showRepeatingEdges));
     return result.append("}\n").toString();
   }
 }
