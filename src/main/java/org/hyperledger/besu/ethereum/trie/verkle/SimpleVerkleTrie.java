@@ -153,7 +153,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
    * @return The DOT representation of the Verkle Trie.
    */
   public String toDotTree(Boolean showRepeatingEdges) {
-    return String.format("digraph VerkleTrie {%s}\n", getRoot().toDot(showRepeatingEdges));
+    return String.format("digraph VerkleTrie {\n%s}\n", getRoot().toDot(showRepeatingEdges));
   }
 
   /**
@@ -165,13 +165,9 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
    * @return The DOT representation of the Verkle Trie.
    */
   public String toDotTree() {
-<<<<<<< HEAD
     StringBuilder result = new StringBuilder("digraph VerkleTrie {\n");
     Node<V> root = getRoot();
-    result.append(root.toDot(showRepeatingEdges));
+    result.append(root.toDot());
     return result.append("}\n").toString();
-=======
-    return String.format("digraph VerkleTrie {%s}\n", getRoot().toDot());
->>>>>>> e46a961 (Modify toDotTrie() methods to use String.format())
   }
 }
