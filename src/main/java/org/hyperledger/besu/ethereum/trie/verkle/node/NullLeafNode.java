@@ -111,8 +111,12 @@ public class NullLeafNode<V> implements Node<V> {
    */
   @Override
   public String toDot(Boolean showRepeatingEdges) {
-    String result = getClass().getSimpleName() + getLocation().orElse(Bytes.EMPTY) + " [location=\"" + getLocation().orElse(Bytes.EMPTY) + "\"]\n";
-    return result;
+    return String.format(
+            "%s%s [location=\"%s\"]\n",
+            getClass().getSimpleName(),
+            getLocation().orElse(Bytes.EMPTY),
+            getLocation().orElse(Bytes.EMPTY)
+    );
   }
 
   /**

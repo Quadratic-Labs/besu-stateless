@@ -301,23 +301,29 @@ public class StemNode<V> extends BranchNode<V> {
 
   @Override
   public String toDot(Boolean showRepeatingEdges) {
-    StringBuilder result = new StringBuilder()
-            .append(getClass().getSimpleName()).append(getLocation().orElse(Bytes.EMPTY))
-            .append("[location=\"").append(getLocation().orElse(Bytes.EMPTY))
-            .append("\", stem=\"").append(getStem())
-            .append("\", leftCommitment=\"").append(getLeftCommitment().orElse(Bytes32.ZERO))
-            .append("\", rightCommitment=\"").append(getRightCommitment().orElse(Bytes32.ZERO)).append("\"]\n");
+    String result = String.format(
+            "%s%s[location=\"%s\", stem=\"%s\", leftCommitment=\"%s\", rightCommitment=\"%s\"]\n",
+            getClass().getSimpleName(),
+            getLocation().orElse(Bytes.EMPTY),
+            getLocation().orElse(Bytes.EMPTY),
+            getStem(),
+            getLeftCommitment().orElse(Bytes32.ZERO),
+            getRightCommitment().orElse(Bytes32.ZERO)
+    );
 
     for (Node<V> child : getChildren()) {
-      String edgeString = getClass().getSimpleName() + getLocation().orElse(Bytes.EMPTY) + " -> " + child.getClass().getSimpleName()
-              + child.getLocation().orElse(Bytes.EMPTY) + "\n";
+      String edgeString = String.format("%s%s -> %s%s\n",
+              getClass().getSimpleName(),
+              getLocation().orElse(Bytes.EMPTY),
+              child.getClass().getSimpleName(),
+              child.getLocation().orElse(Bytes.EMPTY));
 
-      if(showRepeatingEdges || !result.toString().contains(edgeString)) {
-        result.append(edgeString);
+      if (showRepeatingEdges || !result.contains(edgeString)) {
+        result += edgeString;
       }
-      result.append(child.toDot(showRepeatingEdges));
+      result += child.toDot(showRepeatingEdges);
     }
-    return result.toString();
+    return result;
   }
 
 }

@@ -169,12 +169,14 @@ public class LeafNode<V> implements Node<V> {
   public String toDot(Boolean showRepeatingEdges) {
     Bytes locationBytes = getLocation().orElse(Bytes.EMPTY);
 
-    return new StringBuilder()
-            .append(getClass().getSimpleName()).append(locationBytes)
-            .append("[location=\"").append(locationBytes)
-            .append("\", suffix=\"").append(locationBytes.get(locationBytes.size() - 1))
-            .append("\", value=\"").append(getValue().orElse(null)).append("\"]\n")
-            .toString();
+    return String.format(
+            "%s%s[location=\"%s\", suffix=\"%s\", value=\"%s\"]\n",
+            getClass().getSimpleName(),
+            locationBytes,
+            locationBytes,
+            locationBytes.get(locationBytes.size() - 1),
+            getValue().orElse(null)
+    );
   }
 
 }
