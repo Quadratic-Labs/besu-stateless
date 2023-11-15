@@ -1,6 +1,7 @@
 package org.hyperledger.besu.ethereum.trie.verkle;
 
 import org.apache.tuweni.bytes.Bytes32;
+import org.hyperledger.besu.ethereum.trie.verkle.exporter.DotExporter;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -28,6 +29,21 @@ public class DotDisplayTest {
             return reader.lines().collect(Collectors.joining("\n"));
         }
     }
+
+    @Test
+    public void testToDotTrieOneValueNoRepeatingEdgesExport() throws IOException {
+        SimpleVerkleTrie<Bytes32, Bytes32> trie = new SimpleVerkleTrie<>();
+        Bytes32 key = Bytes32.fromHexString("0x00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff");
+        Bytes32 value = Bytes32.fromHexString("0x1000000000000000000000000000000000000000000000000000000000000000");
+        trie.put(key, value);
+
+        final String fileName = "expectedTreeOneValueNoRepeatingEdges.txt";
+        final String expectedTree = getResources(fileName);
+        final String actualTree = trie.toDotTree();
+
+        assertEquals(expectedTree, actualTree);
+    }
+
     @Test
     public void testToDotTrieOneValueNoRepeatingEdges() throws IOException {
         SimpleVerkleTrie<Bytes32, Bytes32> trie = new SimpleVerkleTrie<>();
@@ -40,6 +56,8 @@ public class DotDisplayTest {
         final String actualTree = trie.toDotTree();
         assertEquals(expectedTree, actualTree);
     }
+
+
 
     @Test
     public void testToDotTrieTwoValuesNoRepeatingEdges() throws IOException {
