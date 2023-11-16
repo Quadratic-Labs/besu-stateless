@@ -14,8 +14,7 @@ import java.util.regex.Pattern;
 public class DotExporter {
 
     private static final Pattern FILE_EXTENSION_PATTERN = Pattern.compile("\\.(dot|gv)$");
-
-    private static final String DEFAULT_FILE_PATH = "src/test/resources/VerkleTrie.gv";
+    private static final String DEFAULT_FILE_NAME = "./VerkleTrie.gv";
 
     /**
      * Exports the VerkleTrie to DOT format and saves it to a file with a default path.
@@ -23,39 +22,19 @@ public class DotExporter {
      * @param verkleTrieDotString DOT representation of the VerkleTrie.
      */
     public static void exportToDotFile(String verkleTrieDotString) {
-        try {
-            Path path = Paths.get(DEFAULT_FILE_PATH);
-
-            if (!path.getParent().toFile().exists()) {
-                path.getParent().toFile().mkdirs();
-            }
-
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(path.toString(), StandardCharsets.UTF_8))) {
-                writer.write(verkleTrieDotString);
-            }
-
-        } catch (AccessDeniedException e) {
-            System.err.println("Error writing DOT file: Access denied. Check write permissions for the file.");
-            e.printStackTrace();
-        } catch (FileSystemException e) {
-            System.err.println("Error writing DOT file: File system issue. Check disk space and file system restrictions.");
-            e.printStackTrace();
-        } catch (IOException e) {
-            System.err.println("Error writing DOT file: " + e.getMessage());
-            e.printStackTrace();
-        }
+        exportToDotFile(verkleTrieDotString, null);
     }
 
     /**
      * Exports the VerkleTrie to DOT format and saves it to a file.
      *
      * @param verkleTrieDotString DOT representation of the VerkleTrie.
-     * @param filePath            The path where the DOT file will be saved.
+     * @param filePath            The path where the DOT file will be saved. If null or empty, the default path will be used.
      */
     public static void exportToDotFile(String verkleTrieDotString, String filePath) {
         try {
             if (filePath == null || filePath.isEmpty()) {
-                filePath = DEFAULT_FILE_PATH;
+                filePath = DEFAULT_FILE_NAME;
             } else {
                 // Check if the provided filePath has a valid extension (.dot or .gv).
                 Matcher matcher = FILE_EXTENSION_PATTERN.matcher(filePath);
@@ -76,16 +55,16 @@ public class DotExporter {
             }
 
         } catch (AccessDeniedException e) {
-            System.err.println("Error writing DOT file: Access denied. Check write permissions for the file. Details: " + e.getMessage());
-            e.printStackTrace();
+            handleFileWritingError("Access denied. Check write permissions for the file.", e);
         } catch (FileSystemException e) {
-            System.err.println("Error writing DOT file: File system issue. Check disk space and file system restrictions. Details: " + e.getMessage());
-            e.printStackTrace();
+            handleFileWritingError("File system issue. Check disk space and file system restrictions.", e);
         } catch (IOException e) {
-            System.err.println("Error writing DOT file: " + e.getMessage());
-            e.printStackTrace();
+            handleFileWritingError(e.getMessage(), e);
         }
     }
 
-
+    private static void handleFileWritingError(String errorMessage, Exception exception) {
+        System.err.println("Error writing DOT file: " + errorMessage + " Details: " + exception.getMessage());
+        exception.printStackTrace();
+    }
 }

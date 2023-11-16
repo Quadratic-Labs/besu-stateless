@@ -18,6 +18,7 @@ package org.hyperledger.besu.ethereum.trie.verkle;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hyperledger.besu.ethereum.trie.NodeUpdater;
+import org.hyperledger.besu.ethereum.trie.verkle.exporter.DotExporter;
 import org.hyperledger.besu.ethereum.trie.verkle.node.InternalNode;
 import org.hyperledger.besu.ethereum.trie.verkle.node.Node;
 import org.hyperledger.besu.ethereum.trie.verkle.visitor.CommitVisitor;
@@ -169,5 +170,22 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
     Node<V> root = getRoot();
     result.append(root.toDot());
     return result.append("}\n").toString();
+  }
+
+  /**
+   * Exports the Verkle Trie DOT representation to a '.gv' file located in the current directory.
+   * The default file name is "VerkleTree.gv".
+   */
+  public void dotTreeToFile() {
+    DotExporter.exportToDotFile(toDotTree());
+  }
+
+  /**
+   * Exports the Verkle Trie DOT representation to a '.gv' file located at the specified path.
+   *
+   * @param path The location where the DOT file will be saved.
+   */
+  public void dotTreeToFile(String path) {
+    DotExporter.exportToDotFile(toDotTree(), path);
   }
 }

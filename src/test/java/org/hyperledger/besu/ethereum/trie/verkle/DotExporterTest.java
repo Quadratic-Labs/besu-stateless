@@ -37,14 +37,14 @@ public class DotExporterTest {
         Bytes32 value = Bytes32.fromHexString("0x1000000000000000000000000000000000000000000000000000000000000000");
         trie.put(key, value);
 
+        trie.dotTreeToFile("src/test/resources/VerkleTrie.gv");
+
         final String fileName = "expectedTreeOneValueNoRepeatingEdges.txt";
         final String expectedTree = getResources(fileName);
-        final String actualTree = trie.toDotTree();
-        DotExporter.exportToDotFile(actualTree);
 
-        String actualFrommFile = getResources("VerkleTrie.gv");
+        final String actualFromFile = getResources("VerkleTrie.gv");
 
-        assertEquals(expectedTree, actualFrommFile);
+        assertEquals(expectedTree, actualFromFile);
     }
 
 }
