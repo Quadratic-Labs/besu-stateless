@@ -11,8 +11,12 @@ import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DotExporter {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DotExporter.class);
     private static final Pattern FILE_EXTENSION_PATTERN = Pattern.compile("\\.(dot|gv)$");
     private static final String DEFAULT_FILE_NAME = "./VerkleTrie.gv";
 
@@ -39,7 +43,7 @@ public class DotExporter {
                 // Check if the provided filePath has a valid extension (.dot or .gv).
                 Matcher matcher = FILE_EXTENSION_PATTERN.matcher(filePath);
                 if (!matcher.find()) {
-                    System.err.println("Error: Invalid file extension. Use .dot or .gv extension.");
+                    LOG.error("Invalid file extension. Use .dot or .gv extension.");
                     return;
                 }
             }
@@ -64,7 +68,7 @@ public class DotExporter {
     }
 
     private static void handleFileWritingError(String errorMessage, Exception exception) {
-        System.err.println("Error writing DOT file: " + errorMessage + " Details: " + exception.getMessage());
+        LOG.error("Error writing DOT file: {}. Details: {}", errorMessage, exception.getMessage(), exception);
         exception.printStackTrace();
     }
 }
