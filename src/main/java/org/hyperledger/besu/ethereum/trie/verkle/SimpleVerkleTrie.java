@@ -27,6 +27,7 @@ import org.hyperledger.besu.ethereum.trie.verkle.visitor.HashVisitor;
 import org.hyperledger.besu.ethereum.trie.verkle.visitor.PutVisitor;
 import org.hyperledger.besu.ethereum.trie.verkle.visitor.RemoveVisitor;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import org.apache.tuweni.bytes.Bytes;
@@ -175,17 +176,21 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   /**
    * Exports the Verkle Trie DOT representation to a '.gv' file located in the current directory.
    * The default file name is "VerkleTree.gv".
+   *
+   * @throws IOException
    */
-  public void dotTreeToFile() {
+  public void dotTreeToFile() throws IOException {
     DotExporter.exportToDotFile(toDotTree());
   }
 
   /**
+   /**
    * Exports the Verkle Trie DOT representation to a '.gv' file located at the specified path.
    *
    * @param path The location where the DOT file will be saved.
+   * @throws IOException
    */
-  public void dotTreeToFile(String path) {
+  public void dotTreeToFile(String path) throws IOException {
     DotExporter.exportToDotFile(toDotTree(), path);
   }
 }

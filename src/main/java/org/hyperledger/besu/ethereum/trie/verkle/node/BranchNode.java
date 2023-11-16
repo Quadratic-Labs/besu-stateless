@@ -264,8 +264,9 @@ public abstract class BranchNode<V> implements Node<V> {
       if (showRepeatingEdges || !result.toString().contains(edgeString)) {
         result.append(edgeString);
       }
-      result += child.toDot(showRepeatingEdges);
+      result.append(child.toDot(showRepeatingEdges));
     }
-    return result;
+
+    return result.toString();
   }
 }
