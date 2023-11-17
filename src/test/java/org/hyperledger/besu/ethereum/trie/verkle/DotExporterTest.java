@@ -22,6 +22,7 @@ public class DotExporterTest {
      * @throws IOException If an I/O error occurs.
      */
     private String getResources(final String fileName) throws IOException {
+
         var classLoader = DotDisplayTest.class.getClassLoader();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                 classLoader.getResourceAsStream(fileName), StandardCharsets.UTF_8))) {

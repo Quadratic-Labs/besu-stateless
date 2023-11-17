@@ -177,7 +177,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
    * Exports the Verkle Trie DOT representation to a '.gv' file located in the current directory.
    * The default file name is "VerkleTree.gv".
    *
-   * @throws IOException
+   * @throws IOException if an I/O error occurs.
    */
   public void dotTreeToFile() throws IOException {
     DotExporter.exportToDotFile(toDotTree());
@@ -188,7 +188,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
    * Exports the Verkle Trie DOT representation to a '.gv' file located at the specified path.
    *
    * @param path The location where the DOT file will be saved.
-   * @throws IOException
+   * @throws IOException if ann I/O error occurs.
    */
   public void dotTreeToFile(String path) throws IOException {
     DotExporter.exportToDotFile(toDotTree(), path);
