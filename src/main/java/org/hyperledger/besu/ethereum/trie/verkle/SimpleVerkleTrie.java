@@ -184,8 +184,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   }
 
   /**
-   /**
-   * Exports the Verkle Trie DOT representation to a '.gv' file located at the specified path.
+   * /** Exports the Verkle Trie DOT representation to a '.gv' file located at the specified path.
    *
    * @param path The location where the DOT file will be saved.
    * @throws IOException if ann I/O error occurs.
