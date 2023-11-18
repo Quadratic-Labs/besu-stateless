@@ -155,7 +155,9 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
    * @return The DOT representation of the Verkle Trie.
    */
   public String toDotTree(Boolean showRepeatingEdges) {
-    return String.format("digraph VerkleTrie {\n%s\n}", getRoot().toDot(showRepeatingEdges).replaceAll("^\\n+|\\n+$", ""));
+    return String.format(
+        "digraph VerkleTrie {\n%s\n}",
+        getRoot().toDot(showRepeatingEdges).replaceAll("^\\n+|\\n+$", ""));
   }
 
   /**
@@ -174,7 +176,8 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   }
 
   /**
-   * Exports the Verkle Trie DOT representation to a '.gv' file located in the current directory.
+   * Exports the Verkle Trie DOT representation to a '.gv' file located in the
+   * current directory.
    * The default file name is "VerkleTree.gv".
    *
    * @throws IOException if an I/O error occurs.
@@ -184,7 +187,8 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   }
 
   /**
-   * /** Exports the Verkle Trie DOT representation to a '.gv' file located at the specified path.
+   * /** Exports the Verkle Trie DOT representation to a '.gv' file located at the
+   * specified path.
    *
    * @param path The location where the DOT file will be saved.
    * @throws IOException if ann I/O error occurs.
