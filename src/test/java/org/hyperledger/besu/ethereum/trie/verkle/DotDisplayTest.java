@@ -94,7 +94,7 @@ public class DotDisplayTest {
 
     final String fileName = "expectedTreeTwoValuesNoRepeatingEdges.txt";
     final String expectedTree = getResources(fileName);
-    ;
+
     final String actualTree = trie.toDotTree();
     assertEquals(expectedTree, actualTree);
   }
