@@ -155,7 +155,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
    * @return The DOT representation of the Verkle Trie.
    */
   public String toDotTree(Boolean showRepeatingEdges) {
-    return String.format("digraph VerkleTrie {\n%s}\n", getRoot().toDot(showRepeatingEdges));
+    return String.format("digraph VerkleTrie {\n%s\n}", getRoot().toDot(showRepeatingEdges).replaceAll("^\\n+|\\n+$", ""));
   }
 
   /**

@@ -73,7 +73,7 @@ public class DotExporter {
 
       try (BufferedWriter writer =
           new BufferedWriter(new FileWriter(path.toString(), StandardCharsets.UTF_8))) {
-        writer.write(verkleTrieDotString + "\n");
+        writer.write(verkleTrieDotString);
       }
 
     } catch (AccessDeniedException e) {

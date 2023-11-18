@@ -58,6 +58,7 @@ public class DotDisplayTest {
     final String fileName = "expectedTreeOneValueNoRepeatingEdges.txt";
     final String expectedTree = getResources(fileName);
     final String actualTree = trie.toDotTree();
+    System.out.println(actualTree);
 
     assertEquals(expectedTree, actualTree);
   }
