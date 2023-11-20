@@ -43,7 +43,7 @@ public class LeafNode<V> implements Node<V> {
    * Constructs a new LeafNode with location, value.
    *
    * @param location The location of the node in the tree.
-   * @param value    The value associated with the node.
+   * @param value The value associated with the node.
    */
   public LeafNode(final Bytes location, final V value) {
     this.location = Optional.of(location);
@@ -55,7 +55,7 @@ public class LeafNode<V> implements Node<V> {
    * Constructs a new LeafNode with optional location, value.
    *
    * @param location The location of the node in the tree (Optional).
-   * @param value    The value associated with the node.
+   * @param value The value associated with the node.
    */
   public LeafNode(final Optional<Bytes> location, final V value) {
     this.location = location;
@@ -67,7 +67,7 @@ public class LeafNode<V> implements Node<V> {
    * Accepts a visitor for path-based operations on the node.
    *
    * @param visitor The path node visitor.
-   * @param path    The path associated with a node.
+   * @param path The path associated with a node.
    * @return The result of the visitor's operation.
    */
   @Override
@@ -107,8 +107,7 @@ public class LeafNode<V> implements Node<V> {
   }
 
   /**
-   * Get the children of the node. A leaf node does not have children, so this
-   * method throws an
+   * Get the children of the node. A leaf node does not have children, so this method throws an
    * UnsupportedOperationException.
    *
    * @return The list of children nodes (unsupported operation).
@@ -129,7 +128,8 @@ public class LeafNode<V> implements Node<V> {
     if (encodedValue.isPresent()) {
       return encodedValue.get();
     }
-    Bytes encodedVal = getValue().isPresent() ? valueSerializer.apply(getValue().get()) : Bytes.EMPTY;
+    Bytes encodedVal =
+        getValue().isPresent() ? valueSerializer.apply(getValue().get()) : Bytes.EMPTY;
     List<Bytes> values = Arrays.asList(encodedVal);
     Bytes result = RLP.encodeList(values, RLPWriter::writeValue);
     this.encodedValue = Optional.of(result);
@@ -172,10 +172,15 @@ public class LeafNode<V> implements Node<V> {
     Bytes locationBytes = getLocation().orElse(Bytes.EMPTY);
 
     return new StringBuilder()
-        .append(getClass().getSimpleName()).append(locationBytes)
-        .append("[location=\"").append(locationBytes)
-        .append("\", suffix=\"").append(locationBytes.get(locationBytes.size() - 1))
-        .append("\", value=\"").append(getValue().orElse(null)).append("\"]\n")
+        .append(getClass().getSimpleName())
+        .append(locationBytes)
+        .append("[location=\"")
+        .append(locationBytes)
+        .append("\", suffix=\"")
+        .append(locationBytes.get(locationBytes.size() - 1))
+        .append("\", value=\"")
+        .append(getValue().orElse(null))
+        .append("\"]\n")
         .toString();
   }
 }

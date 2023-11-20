@@ -42,7 +42,7 @@ public interface Node<V> {
    * Accept a visitor to perform operations on the node based on a provided path.
    *
    * @param visitor The visitor to accept.
-   * @param path    The path associated with a node.
+   * @param path The path associated with a node.
    * @return The result of visitor's operation.
    */
   Node<V> accept(PathNodeVisitor<V> visitor, Bytes path);
@@ -129,9 +129,7 @@ public interface Node<V> {
   /**
    * Generates DOT representation for the Node.
    *
-   * @param showRepeatingEdges If true, prints all edges; if false, prints only
-   *                           unique edges.
-   *
+   * @param showRepeatingEdges If true, prints all edges; if false, prints only unique edges.
    * @return DOT representation of the Node.
    */
   String toDot(Boolean showRepeatingEdges);
@@ -139,8 +137,7 @@ public interface Node<V> {
   /**
    * Generates DOT representation for the Node.
    *
-   * <p>
-   * Representation does not contain repeating edges.
+   * <p>Representation does not contain repeating edges.
    *
    * @return DOT representation of the Node.
    */

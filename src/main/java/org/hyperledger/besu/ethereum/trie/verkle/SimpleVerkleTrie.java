@@ -78,8 +78,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
    * Gets the value associated with the specified key from the Verkle Trie.
    *
    * @param key The key to retrieve the value for.
-   * @return An optional containing the value if found, or an empty optional if
-   *         not found.
+   * @return An optional containing the value if found, or an empty optional if not found.
    */
   @Override
   public Optional<V> get(final K key) {
@@ -90,7 +89,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   /**
    * Inserts a key-value pair into the Verkle Trie.
    *
-   * @param key   The key to insert.
+   * @param key The key to insert.
    * @param value The value to associate with the key.
    */
   @Override
@@ -137,8 +136,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   /**
    * Commits the Verkle Trie using the provided node updater.
    *
-   * @param nodeUpdater The node updater for storing the changes in the Verkle
-   *                    Trie.
+   * @param nodeUpdater The node updater for storing the changes in the Verkle Trie.
    */
   @Override
   public void commit(final NodeUpdater nodeUpdater) {
@@ -149,9 +147,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   /**
    * Returns the DOT representation of the entire Verkle Trie.
    *
-   * @param showRepeatingEdges if true displays repeating edges; if false does
-   *                           not.
-   *
+   * @param showRepeatingEdges if true displays repeating edges; if false does not.
    * @return The DOT representation of the Verkle Trie.
    */
   public String toDotTree(Boolean showRepeatingEdges) {
@@ -163,8 +159,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   /**
    * Returns the DOT representation of the entire Verkle Trie.
    *
-   * <p>
-   * The representation does not contain repeating edges.
+   * <p>The representation does not contain repeating edges.
    *
    * @return The DOT representation of the Verkle Trie.
    */
@@ -172,12 +167,11 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
     StringBuilder result = new StringBuilder("digraph VerkleTrie {\n");
     Node<V> root = getRoot();
     result.append(root.toDot());
-    return result.append("}\n").toString();
+    return result.append("}").toString();
   }
 
   /**
-   * Exports the Verkle Trie DOT representation to a '.gv' file located in the
-   * current directory.
+   * Exports the Verkle Trie DOT representation to a '.gv' file located in the current directory.
    * The default file name is "VerkleTree.gv".
    *
    * @throws IOException if an I/O error occurs.
@@ -187,8 +181,7 @@ public class SimpleVerkleTrie<K extends Bytes, V extends Bytes> implements Verkl
   }
 
   /**
-   * /** Exports the Verkle Trie DOT representation to a '.gv' file located at the
-   * specified path.
+   * /** Exports the Verkle Trie DOT representation to a '.gv' file located at the specified path.
    *
    * @param path The location where the DOT file will be saved.
    * @throws IOException if ann I/O error occurs.

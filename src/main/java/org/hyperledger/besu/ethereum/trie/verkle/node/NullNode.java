@@ -26,11 +26,8 @@ import org.apache.tuweni.bytes.Bytes32;
 /**
  * A special node representing a null or empty node in the Verkle Trie.
  *
- * <p>
- * The `NullNode` class serves as a placeholder for non-existent nodes in the
- * Verkle Trie
- * structure. It implements the Node interface and represents a node that
- * contains no information or
+ * <p>The `NullNode` class serves as a placeholder for non-existent nodes in the Verkle Trie
+ * structure. It implements the Node interface and represents a node that contains no information or
  * value.
  */
 public class NullNode<V> implements Node<V> {
@@ -38,12 +35,10 @@ public class NullNode<V> implements Node<V> {
   private static final NullNode instance = new NullNode();
 
   /**
-   * Constructs a new `NullNode`. This constructor is protected to ensure that
-   * `NullNode` instances
+   * Constructs a new `NullNode`. This constructor is protected to ensure that `NullNode` instances
    * are only created as singletons.
    */
-  protected NullNode() {
-  }
+  protected NullNode() {}
 
   /**
    * Gets the shared instance of the `NullNode`.
@@ -60,7 +55,7 @@ public class NullNode<V> implements Node<V> {
    * Accepts a visitor for path-based operations on the node.
    *
    * @param visitor The path node visitor.
-   * @param path    The path associated with a node.
+   * @param path The path associated with a node.
    * @return The result of the visitor's operation.
    */
   @Override
@@ -116,8 +111,12 @@ public class NullNode<V> implements Node<V> {
    */
   @Override
   public String toDot(Boolean showRepeatingEdges) {
-    String result = getClass().getSimpleName() + getLocation().orElse(Bytes.EMPTY) + "[location=\""
-        + getLocation().orElse(Bytes.EMPTY) + "\"]\n";
+    String result =
+        getClass().getSimpleName()
+            + getLocation().orElse(Bytes.EMPTY)
+            + "[location=\""
+            + getLocation().orElse(Bytes.EMPTY)
+            + "\"]\n";
     return result;
   }
 
@@ -134,8 +133,7 @@ public class NullNode<V> implements Node<V> {
   /**
    * Mark the `NullNode` as dirty (not used, no operation).
    *
-   * <p>
-   * This method intentionally does nothing.
+   * <p>This method intentionally does nothing.
    */
   @Override
   public void markDirty() {
