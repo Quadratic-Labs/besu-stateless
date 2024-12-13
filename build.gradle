@@ -65,8 +65,8 @@ dependencies {
   implementation 'org.apache.logging.log4j:log4j-core'
   implementation 'org.hyperledger.besu.internal:rlp'
   implementation 'org.hyperledger.besu.internal:trie'
+  implementation 'com.fasterxml.jackson.core:jackson-databind'
 
-  testImplementation 'com.fasterxml.jackson.core:jackson-databind'
   testImplementation 'org.assertj:assertj-core'
   testImplementation 'org.apache.commons:commons-csv:1.10.0'
   testImplementation 'org.junit.jupiter:junit-jupiter-api'
