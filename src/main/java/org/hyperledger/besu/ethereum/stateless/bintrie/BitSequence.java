@@ -15,68 +15,42 @@
  */
 package org.hyperledger.besu.ethereum.stateless.bintrie;
 
-import java.util.Arrays;
-
-/** Class representing a sequence of bits, used as prefixes in a Binary Trie. */
-public class BitSequence implements Comparable<BitSequence> {
-  // Internally represented by 7bits per byte to simplify encoding.
-  private static final int N_BITS_PER_BYTE = 7;
-
-  private final byte[] data;
-  private final int bitLength;
-
-  public BitSequence(int bitLength) {
-    ensureBitLength(bitLength);
-    this.data = new byte[getByteLength(bitLength)];
-    this.bitLength = bitLength;
-  }
-
-  public BitSequence(int bitLength, byte[] data) {
-    ensureBitLength(bitLength);
-    this.data = data.clone();
-    this.bitLength = bitLength;
-  }
+/** Interface representing a sequence of bits, used as prefixes in a Binary Trie. */
+public abstract class BitSequence<T extends BitSequence<T>> implements Comparable<BitSequence<T>> {
+  /**
+   * Get a BitSequence factory
+   *
+   * @return A factory for building new BitSequences.
+   */
+  public abstract BitSequenceFactory<T> factory();
 
   /**
-   * Get a BitSequence from a binary string representation.
+   * Get an identical copy.
    *
-   * @param bits Binary string representation.
-   * @return A string representation of the node.
+   * @return A new BitSequence equal to initial one.
    */
-  public static BitSequence fromBinaryString(String bits) {
-    if (bits == null || !bits.matches("[01]*")) {
-      throw new IllegalArgumentException(
-          "Input must be a binary string (only '0' and '1' allowed)");
-    }
-
-    BitSequence result = new BitSequence(bits.length());
-    for (int i = 0; i < bits.length(); i++) {
-      result.setBit(i, bits.charAt(i) == '1');
-    }
-    return result;
-  }
+  public abstract T copy();
 
   /**
    * The binary string representation of the BitSequence.
    *
    * @return A string representation of the node.
    */
-  public String toBinaryString() {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < bitLength; i++) {
-      sb.append(getBit(i) ? '1' : '0');
-    }
-    return sb.toString();
-  }
+  public abstract String toBinaryString();
+
+  /**
+   * Convert BitSequence to an int if possible.
+   *
+   * @return the big-endian integer value.
+   */
+  public abstract int toInt();
 
   /**
    * Get length in bits
    *
    * @return Sequence's length in bits.
    */
-  public int getBitLength() {
-    return bitLength;
-  }
+  public abstract int length();
 
   /**
    * bit at a given index to a given value
@@ -84,33 +58,15 @@ public class BitSequence implements Comparable<BitSequence> {
    * @param bit The boolean value to set at the end.
    * @return New BitSequence with added bit at the tail.
    */
-  public BitSequence addBit(boolean bit) {
-    BitSequence newSeq = new BitSequence(bitLength + 1);
-    int byteCount = newSeq.getByteLength();
-    System.arraycopy(this.data, 0, newSeq.data, 0, byteCount);
-    newSeq.setBit(bitLength, bit);
-    return newSeq;
-  }
+  public abstract T add(boolean bit);
 
   /**
-   * Set a bit at a given index to a given value
+   * bit at a given index to a given value
    *
-   * @param bitIndex The bit position to set.
-   * @param value The boolean value to set.
+   * @param suffix The integer value to add at the end of the sequence.
+   * @return New BitSequence with added bit at the tail.
    */
-  public void setBit(int bitIndex, boolean value) {
-    if (bitIndex < -bitLength || bitIndex >= bitLength) {
-      throw new IndexOutOfBoundsException();
-    }
-    bitIndex = bitIndex < 0 ? bitLength + bitIndex : bitIndex;
-    int byteIndex = bitIndex / N_BITS_PER_BYTE;
-    int bitPos = 7 - (bitIndex % N_BITS_PER_BYTE);
-    if (value) {
-      data[byteIndex] = (byte) (data[byteIndex] | (1 << bitPos));
-    } else {
-      data[byteIndex] = (byte) (data[byteIndex] & ~(1 << bitPos));
-    }
-  }
+  public abstract T add(int suffix);
 
   /**
    * Get a bit at a given index.
@@ -118,24 +74,15 @@ public class BitSequence implements Comparable<BitSequence> {
    * @param bitIndex The bit position to set.
    * @return The boolean value at given index.
    */
-  public boolean getBit(int bitIndex) {
-    if (bitIndex < -bitLength || bitIndex >= bitLength) {
-      throw new IndexOutOfBoundsException();
-    }
-    bitIndex = bitIndex < 0 ? bitLength + bitIndex : bitIndex;
-    int byteIndex = bitIndex / N_BITS_PER_BYTE;
-    int bitPos = 7 - (bitIndex % N_BITS_PER_BYTE);
-    return (data[byteIndex] & (1 << bitPos)) != 0;
-  }
+  public abstract boolean get(int bitIndex);
 
   /**
-   * Get BitSequence as byte array.
+   * Set a bit at a given index to a given value
    *
-   * @return Underlying byte array.
+   * @param bitIndex The bit position to set.
+   * @param value The boolean value to set.
    */
-  public byte[] getBytes() {
-    return data.clone();
-  }
+  public abstract void set(int bitIndex, boolean value);
 
   /**
    * Get a slice of the BitSequence, starting at start in bits until the end.
@@ -143,9 +90,7 @@ public class BitSequence implements Comparable<BitSequence> {
    * @param from The starting position.
    * @return A new BitSequence from the slice.
    */
-  public BitSequence slice(int from) {
-    return slice(from, bitLength);
-  }
+  public abstract T slice(int from);
 
   /**
    * Get a slice of the BitSequence.
@@ -154,34 +99,7 @@ public class BitSequence implements Comparable<BitSequence> {
    * @param toExclusive The ending position.
    * @return A new BitSequence from the slice.
    */
-  public BitSequence slice(int from, int toExclusive) {
-    if (from < 0 || toExclusive > bitLength || from > toExclusive) {
-      throw new IndexOutOfBoundsException("Invalid slice range");
-    }
-
-    int sliceLength = toExclusive - from;
-    if (sliceLength == 0) {
-      return new BitSequence(0);
-    }
-
-    BitSequence result = new BitSequence(sliceLength);
-
-    int startByte = from / N_BITS_PER_BYTE;
-    int startBitOffset = from % N_BITS_PER_BYTE;
-
-    if (startBitOffset == 0 && sliceLength % 8 == 0) {
-      System.arraycopy(this.data, startByte, result.data, 0, result.getByteLength());
-      return result;
-    }
-
-    // General case: slower bitwise copy
-    // ENH: use arraycopy for all full bytes.
-    for (int i = 0; i < sliceLength; i++) {
-      result.setBit(i, this.getBit(from + i));
-    }
-
-    return result;
-  }
+  public abstract T slice(int from, int toExclusive);
 
   /**
    * Lexicographical comparaison of two BitSequences.
@@ -190,16 +108,16 @@ public class BitSequence implements Comparable<BitSequence> {
    * @return Comparaison value.
    */
   @Override
-  public int compareTo(BitSequence other) {
-    int minLength = Math.min(this.bitLength, other.bitLength);
+  public int compareTo(BitSequence<T> other) {
+    int minLength = Math.min(this.length(), other.length());
     for (int i = 0; i < minLength; i++) {
-      boolean bitA = this.getBit(i);
-      boolean bitB = other.getBit(i);
+      boolean bitA = this.get(i);
+      boolean bitB = other.get(i);
       if (bitA != bitB) {
         return bitA ? 1 : -1;
       }
     }
-    return Integer.compare(this.bitLength, other.bitLength);
+    return Integer.compare(this.length(), other.length());
   }
 
   /**
@@ -208,76 +126,30 @@ public class BitSequence implements Comparable<BitSequence> {
    * @param other The BitSequence to compare to.
    * @return BitSequence of the common prefix.
    */
-  public BitSequence commonPrefix(BitSequence other) {
-    int diff = 0;
-    int length = 0;
-    int maxBytes = Math.min(this.getByteLength(), other.getByteLength());
-    byte[] out;
-    for (int i = 0; i < maxBytes; i++) {
-      diff = this.data[i] ^ other.data[i];
-      if (diff == 0) { // All bits are the same
-        length += N_BITS_PER_BYTE;
-      } else {
-        int n_bits = Integer.numberOfLeadingZeros(diff);
-        if (n_bits == 0) {
-          break;
-        }
-        length += n_bits - 24;
+  public T commonPrefix(BitSequence<T> other) {
+    int maxSize = Math.min(this.length(), other.length());
+    T result = factory().empty();
+    for (int i = 0; i < maxSize; i++) {
+      boolean thisBit = this.get(i);
+      boolean otherBit = other.get(i);
+      if (thisBit != otherBit) {
         break;
       }
+      result.add(thisBit);
     }
-    if (length == 0) {
-      return new BitSequence(0);
-    }
-    int nBytes = getByteLength(length);
-    out = new byte[nBytes];
-    if (length % N_BITS_PER_BYTE == 0) {
-      System.arraycopy(this.data, 0, out, 0, nBytes);
-    } else {
-      System.arraycopy(this.data, 0, out, 0, nBytes - 1);
-      out[nBytes - 1] = (byte) (this.data[nBytes - 1] & ~diff);
-    }
-    return new BitSequence(length, out);
-
-    // BitSequence prefix = new BitSequence(maxBits);
-
-    // for (int i = 0; i < maxBits; i++) {
-    //   boolean bitA = this.getBit(i);
-    //   boolean bitB = other.getBit(i);
-    //   if (bitA != bitB) {
-    //     break;
-    //   }
-    //   prefix.setBit(i, bitA);
-    // }
-    // return prefix;
+    return result;
   }
 
   /**
-   * Convert to an int
+   * Concatenate 2 BitSequences
    *
-   * @return the big-endian integer value.
+   * @param other BitSequence to concatenate
+   * @return Concatenates BitSequence
    */
-  public int toInt() {
-    if (bitLength > 32) {
-      throw new ArithmeticException("BitSequence too long to convert to int");
-    }
-    if (bitLength == 0) {
-      throw new IllegalArgumentException("Cannot convert empty BitSequence to int");
-    }
-
-    int result = 0;
-    int nBytes = data.length;
-    // Process least significant byte, possibly partially filled.
-    int remainingLength = bitLength % N_BITS_PER_BYTE;
-    if (remainingLength == 0) {
-      remainingLength = N_BITS_PER_BYTE;
-    }
-    result += Byte.toUnsignedInt(data[nBytes - 1]) >> (8 - remainingLength);
-    int power = 1 << remainingLength;
-    // Process full bytes right to left
-    for (int i = nBytes - 2; i >= 0; i--) {
-      result += (Byte.toUnsignedInt(data[i]) >> 1) * power;
-      power <<= N_BITS_PER_BYTE;
+  public T concatenate(BitSequence<T> other) {
+    T result = copy();
+    for (int i = 0; i < other.length(); i++) {
+      result.add(other.get(i));
     }
     return result;
   }
@@ -287,99 +159,5 @@ public class BitSequence implements Comparable<BitSequence> {
    *
    * @return Encoded byte array representation of the BitSequence.
    */
-  public byte[] encode() {
-    int encodedInt;
-    int nBytes = getByteLength();
-    byte[] out = new byte[nBytes];
-    if (nBytes == 0) {
-      return out;
-    }
-    for (int i = 0; i < nBytes - 1; i++) {
-      encodedInt = Byte.toUnsignedInt(data[i]);
-      out[i] = (byte) (encodedInt + N_BITS_PER_BYTE - Integer.bitCount(encodedInt));
-    }
-    // Last byte may be incomplete
-    encodedInt = Byte.toUnsignedInt(data[nBytes - 1]);
-    int nBits = (bitLength % N_BITS_PER_BYTE);
-    if (nBits == 0) nBits = N_BITS_PER_BYTE;
-    out[nBytes - 1] = (byte) (encodedInt + nBits - Integer.bitCount(encodedInt));
-    return out;
-  }
-
-  /**
-   * Decode a BitSequence from the encoded form.
-   *
-   * @param encoded The encoded representation of a BitSequence
-   * @return Decoded BitSequence.
-   */
-  public static BitSequence decode(byte[] encoded) {
-    int encodedInt;
-    int decodedInt;
-    int decodedBitLength = 0;
-    int power;
-    byte[] outData = new byte[encoded.length];
-
-    for (int i = 0; i < encoded.length; i++) {
-      decodedInt = 0;
-      encodedInt = Byte.toUnsignedInt(encoded[i]);
-      power = 128;
-      while (encodedInt > 0) {
-        decodedBitLength++;
-        if (encodedInt >= power) {
-          encodedInt -= power;
-          decodedInt += power;
-        } else {
-          encodedInt -= 1;
-        }
-        power >>= 1;
-      }
-      outData[i] = (byte) decodedInt;
-    }
-    return new BitSequence(decodedBitLength, outData);
-  }
-
-  /**
-   * Get a string representation of the node.
-   *
-   * @return A string representation of the node.
-   */
-  @Override
-  public String toString() {
-    return String.format("BitSequence(%s)", toBinaryString());
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null || getClass() != obj.getClass()) return false;
-
-    BitSequence other = (BitSequence) obj;
-    if (this.bitLength != other.bitLength) return false;
-
-    int nBytes = getByteLength();
-    return Arrays.equals(this.data, 0, nBytes, other.data, 0, nBytes);
-  }
-
-  @Override
-  public int hashCode() {
-    int result = Integer.hashCode(bitLength);
-    for (int i = 0; i < data.length; i++) {
-      result = 31 * result + Byte.hashCode(data[i]);
-    }
-    return result;
-  }
-
-  private void ensureBitLength(int bitLength) {
-    if (bitLength < 0) {
-      throw new IllegalArgumentException("Bit length must be non-negative");
-    }
-  }
-
-  private int getByteLength() {
-    return (this.bitLength + N_BITS_PER_BYTE - 1) / N_BITS_PER_BYTE;
-  }
-
-  private int getByteLength(int bitLength) {
-    return (bitLength + N_BITS_PER_BYTE - 1) / N_BITS_PER_BYTE;
-  }
+  public abstract byte[] encode();
 }
