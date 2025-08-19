@@ -39,9 +39,9 @@ public abstract class BitSequence<T extends BitSequence<T>> implements Comparabl
   public abstract String toBinaryString();
 
   /**
-   * The Hex+ string representation of the BitSequence.
+   * A hex-like representation of the BitSequence.
    *
-   * @return A byte array representation of the node.
+   * @return A string representation of the node.
    */
   public abstract String toHexString();
 

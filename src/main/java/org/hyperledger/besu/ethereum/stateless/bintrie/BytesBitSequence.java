@@ -96,9 +96,12 @@ public class BytesBitSequence extends BitSequence<BytesBitSequence> {
   }
 
   /**
-   * The hex+ string representation of the BytesBitSequence.
+   * The hex-like representation of the BitSequence.
    *
-   * @return A string representation of the node.
+   * <p>The representation chunks 4 bits into a hexadecimal. The remaining up to 3 bits are appended
+   * with toBinaryString(), dot-separated from the hexadecimals.
+   *
+   * @return hexlike representation.
    */
   @Override
   public String toHexString() {
