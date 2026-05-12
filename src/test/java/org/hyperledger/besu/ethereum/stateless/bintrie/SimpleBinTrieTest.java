@@ -75,6 +75,30 @@ public class SimpleBinTrieTest {
   }
 
   @Test
+  public void testDeleteKeyWithDivergentStemDoesNotWipeExistingStem() {
+    // Regression test: removing a key whose stem is absent from the trie must be a no-op, even
+    // when the traversal lands on an existing stem node sharing a path prefix. RemoveVisitor
+    // used to return a NullNode in that case, wiping the whole unrelated stem.
+    SimpleBinTrie<BytesPackedBitSequence, Bytes32> trie = new SimpleBinTrie<>();
+    BytesPackedBitSequence key =
+        keyFactory.fromHexString(
+            "0x00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff");
+    Bytes32 value =
+        Bytes32.fromHexString("0x1000000000000000000000000000000000000000000000000000000000000000");
+    trie.put(key, value);
+    Bytes32 rootBefore = trie.getRootHash();
+
+    // same prefix bits, divergent stem, absent from the trie
+    BytesPackedBitSequence absentKey =
+        keyFactory.fromHexString(
+            "0x00112233445566778899aabbccddee0000112233445566778899aabbccddeeff");
+    trie.remove(absentKey);
+
+    assertThat(trie.get(key)).as("Existing value survives").isEqualTo(Optional.of(value));
+    assertThat(trie.getRootHash()).as("Root unchanged").isEqualTo(rootBefore);
+  }
+
+  @Test
   public void testTwoValuesAtSameStem() throws Exception {
     SimpleBinTrie<BytesPackedBitSequence, Bytes32> trie = new SimpleBinTrie<>();
     BytesPackedBitSequence key1 =

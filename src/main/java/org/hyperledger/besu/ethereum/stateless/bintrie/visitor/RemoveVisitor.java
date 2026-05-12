@@ -83,7 +83,10 @@ public class RemoveVisitor<K extends BitSequence<K>, V> implements NodeVisitor<K
     depth++;
     final K prefix = path.commonPrefix(stemNode.stem);
     if (prefix.length() < stemNode.stem.length()) {
-      return NullNode.node();
+      // The path's stem diverges from this stem: the key is not in the trie, so removal is a
+      // no-op. Returning the node unchanged is essential — the parent uses the returned node as
+      // the replacement child, so returning NullNode here would wipe the whole unrelated stem.
+      return stemNode;
     }
     int suffix = path.slice(Node.STEM_SIZE).toInt();
     final LeafNode<K, V> childToVisit = stemNode.child(suffix);
