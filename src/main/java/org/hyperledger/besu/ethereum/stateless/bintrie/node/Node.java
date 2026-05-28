@@ -39,6 +39,26 @@ public abstract class Node<K extends BitSequence<K>, V> {
   public static int KEY_SIZE = 256;
   public static int COMMITMENT_SIZE = 256;
 
+  /*
+   * Node tags of the persisted chunk format.
+   *
+   * Internal nodes are persisted in chunks: subtrees of depth `stride` rooted at
+   * locations whose length is a multiple of the stride. A chunk is encoded
+   * recursively in pre-order, each node starting with one of these tags:
+   * - CHUNK_NULL: a NullNode, nothing follows.
+   * - CHUNK_INTERNAL: an InternalNode inside the chunk; followed by its 32-byte
+   *   commitment, then the encodings of its left and right children.
+   * - CHUNK_STEM: a link to a StemNode stored under its own stem key; followed by
+   *   a 1-byte length and the encoded extension from this node's location down to
+   *   the full stem.
+   * - CHUNK_CHILD: a reference to the root of the child chunk stored under its own
+   *   location key; only valid at the bottom boundary of a chunk, nothing follows.
+   */
+  public static final byte CHUNK_NULL = 0x00;
+  public static final byte CHUNK_INTERNAL = 0x01;
+  public static final byte CHUNK_STEM = 0x02;
+  public static final byte CHUNK_CHILD = 0x03;
+
   // Data fields
   public final Optional<K> location;
   public final Optional<Bytes32> commitment;

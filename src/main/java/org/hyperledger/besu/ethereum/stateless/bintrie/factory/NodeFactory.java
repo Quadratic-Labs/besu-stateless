@@ -41,4 +41,15 @@ public interface NodeFactory<K extends BitSequence<K>, V> {
    * @return An optional containing the retrieved node, or empty if not found.
    */
   Optional<Node<K, V>> retrieve(final K location);
+
+  /**
+   * The depth in bits of the persisted subtrees of internal nodes.
+   *
+   * <p>Committing a trie backed by this factory must use the same stride.
+   *
+   * @return The chunk stride.
+   */
+  default int getStride() {
+    return 1;
+  }
 }

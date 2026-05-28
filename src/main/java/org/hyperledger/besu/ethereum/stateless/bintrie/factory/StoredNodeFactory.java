@@ -21,6 +21,7 @@ import org.hyperledger.besu.ethereum.stateless.bintrie.node.InternalNode;
 import org.hyperledger.besu.ethereum.stateless.bintrie.node.LeafNode;
 import org.hyperledger.besu.ethereum.stateless.bintrie.node.Node;
 import org.hyperledger.besu.ethereum.stateless.bintrie.node.NullLeafNode;
+import org.hyperledger.besu.ethereum.stateless.bintrie.node.NullNode;
 import org.hyperledger.besu.ethereum.stateless.bintrie.node.StemNode;
 import org.hyperledger.besu.ethereum.stateless.bintrie.node.StoredNode;
 import org.hyperledger.besu.ethereum.stateless.bintrie.node.ValueNode;
@@ -44,9 +45,11 @@ public class StoredNodeFactory<K extends BitSequence<K>, V> implements NodeFacto
   private final NodeLoader nodeLoader;
   private final BitSequenceFactory<K> keyFactory;
   private final Function<Bytes, V> valueDeserializer;
+  private final int stride;
 
   /**
-   * Creates a new StoredNodeFactory with the given node loader and value deserializer.
+   * Creates a new StoredNodeFactory with the given node loader and value deserializer, reading
+   * internal nodes in chunks of stride 1.
    *
    * @param nodeLoader The loader for retrieving stored nodes.
    * @param keyFactory The function to deserialize keys from Bytes.
@@ -56,9 +59,35 @@ public class StoredNodeFactory<K extends BitSequence<K>, V> implements NodeFacto
       NodeLoader nodeLoader,
       BitSequenceFactory<K> keyFactory,
       Function<Bytes, V> valueDeserializer) {
+    this(nodeLoader, keyFactory, valueDeserializer, 1);
+  }
+
+  /**
+   * Creates a new StoredNodeFactory with the given node loader and value deserializer.
+   *
+   * @param nodeLoader The loader for retrieving stored nodes.
+   * @param keyFactory The function to deserialize keys from Bytes.
+   * @param valueDeserializer The function to deserialize values from Bytes.
+   * @param stride The depth in bits of the persisted subtrees of internal nodes; must match the
+   *     stride the data was written with.
+   */
+  public StoredNodeFactory(
+      NodeLoader nodeLoader,
+      BitSequenceFactory<K> keyFactory,
+      Function<Bytes, V> valueDeserializer,
+      int stride) {
+    if (stride < 1) {
+      throw new IllegalArgumentException("Chunk stride must be at least 1");
+    }
     this.nodeLoader = nodeLoader;
     this.keyFactory = keyFactory;
     this.valueDeserializer = valueDeserializer;
+    this.stride = stride;
+  }
+
+  @Override
+  public int getStride() {
+    return stride;
   }
 
   /**
@@ -97,8 +126,8 @@ public class StoredNodeFactory<K extends BitSequence<K>, V> implements NodeFacto
   public Optional<Node<K, V>> retrieve(final K location) {
     /*
      * Currently, Root and Leaf are distinguishable by location.
-     * To distinguish internal from stem, we further need values.
-     * Currently, they are distinguished by values length.
+     * Stems have locations of STEM_SIZE bits, while chunks of internal
+     * nodes are keyed by their root location, a multiple of the stride.
      */
     Bytes32 hash = null; // For backward compatibilty purposes only.
     Optional<Bytes> maybeEncodedValues = nodeLoader.getNode(Bytes.wrap(location.encode()), hash);
@@ -109,55 +138,91 @@ public class StoredNodeFactory<K extends BitSequence<K>, V> implements NodeFacto
     if (location.length() == Node.STEM_SIZE) {
       return Optional.of(decodeStemNode(location, encodedValues));
     } else {
-      return Optional.of(decodeInternalNode(location, encodedValues));
+      return Optional.of(decodeChunk(location, encodedValues));
     }
   }
 
   /**
-   * Creates a internalNode using the provided location, and path.
+   * Decodes a chunk: the subtree of internal nodes of depth at most stride rooted at the given
+   * location. See the {@code CHUNK_*} tags in {@link Node} for the format.
    *
-   * @param location The location of the internalNode.
-   * @param encodedValues List of Bytes values retrieved from storage.
-   * @return A internalNode instance.
+   * <p>In-chunk internal nodes are fully materialized; stem links and child chunk references are
+   * materialized as {@link StoredNode}s resolved lazily from storage.
+   *
+   * @param location The location of the chunk's root; its length is a multiple of the stride.
+   * @param encodedValues The encoded chunk retrieved from storage.
+   * @return The chunk's root InternalNode.
    */
-  InternalNode<K, V> decodeInternalNode(K location, Bytes encodedValues) {
-    StoredNode<K, V> left, right;
-    Optional<K> leftLocation, rightLocation;
+  InternalNode<K, V> decodeChunk(K location, Bytes encodedValues) {
+    if (location.length() % stride != 0) {
+      throw new IllegalArgumentException("Chunk location misaligned with stride");
+    }
+    ChunkDecoder decoder = new ChunkDecoder(encodedValues);
+    Node<K, V> node = decoder.decodeNode(location, 0);
+    assert decoder.cursor == encodedValues.size() : "Unread bytes in stored chunk representation";
+    if (!(node instanceof InternalNode)) {
+      throw new IllegalArgumentException("Chunk root must be an InternalNode");
+    }
+    return (InternalNode<K, V>) node;
+  }
 
-    // Decode encodedValues
+  /** Cursor-based recursive decoder of a serialized chunk of internal nodes. */
+  private class ChunkDecoder {
+    final Bytes encodedValues;
     int cursor = 0;
-    Optional<Bytes32> commitment = Optional.of((Bytes32) encodedValues.slice(cursor, cursor + 32));
-    cursor += 32;
-    int leftExtensionLength = encodedValues.get(cursor);
-    cursor += 1;
-    Bytes leftExtension = encodedValues.slice(cursor, leftExtensionLength);
-    cursor += leftExtensionLength;
-    int rightExtensionLength = encodedValues.get(cursor);
-    cursor += 1;
-    Bytes rightExtension = encodedValues.slice(cursor, rightExtensionLength);
-    cursor += rightExtensionLength;
-    assert encodedValues.size() == cursor : "Unread bytes in stored InternalNode representation";
 
-    leftLocation =
-        Optional.of(
-            (leftExtensionLength > 0)
-                ? location.concatenate(leftExtension.toArray())
-                : location.add(false));
-    left = new StoredNode<K, V>(this, leftLocation, commitment);
-    left.markClean();
+    ChunkDecoder(Bytes encodedValues) {
+      this.encodedValues = encodedValues;
+    }
 
-    rightLocation =
-        Optional.of(
-            (rightExtensionLength > 0)
-                ? location.concatenate(rightExtension.toArray())
-                : location.add(true));
-    right = new StoredNode<K, V>(this, rightLocation, commitment);
-    right.markClean();
-
-    final InternalNode<K, V> internalNode =
-        new InternalNode<>(Optional.of(location), commitment, left, right);
-    internalNode.markClean();
-    return internalNode;
+    Node<K, V> decodeNode(K location, int depth) {
+      byte tag = encodedValues.get(cursor);
+      cursor += 1;
+      switch (tag) {
+        case Node.CHUNK_NULL:
+          return NullNode.node();
+        case Node.CHUNK_INTERNAL:
+          {
+            if (depth >= stride) {
+              throw new IllegalArgumentException("Internal node overflowing its chunk");
+            }
+            Optional<Bytes32> commitment = Optional.of(Bytes32.wrap(encodedValues, cursor));
+            cursor += 32;
+            Node<K, V> left = decodeNode(location.add(false), depth + 1);
+            Node<K, V> right = decodeNode(location.add(true), depth + 1);
+            InternalNode<K, V> internalNode =
+                new InternalNode<>(Optional.of(location), commitment, left, right);
+            internalNode.markClean();
+            return internalNode;
+          }
+        case Node.CHUNK_STEM:
+          {
+            int extensionLength = Byte.toUnsignedInt(encodedValues.get(cursor));
+            cursor += 1;
+            Bytes extension = encodedValues.slice(cursor, extensionLength);
+            cursor += extensionLength;
+            K stem = (extensionLength > 0) ? location.concatenate(extension.toArray()) : location;
+            if (stem.length() != Node.STEM_SIZE) {
+              throw new IllegalArgumentException("Stem link does not resolve to a stem");
+            }
+            StoredNode<K, V> stemNode = new StoredNode<>(StoredNodeFactory.this, Optional.of(stem));
+            stemNode.markClean();
+            return stemNode;
+          }
+        case Node.CHUNK_CHILD:
+          {
+            if (depth != stride) {
+              throw new IllegalArgumentException("Child chunk reference not at chunk boundary");
+            }
+            StoredNode<K, V> childChunk =
+                new StoredNode<>(StoredNodeFactory.this, Optional.of(location));
+            childChunk.markClean();
+            return childChunk;
+          }
+        default:
+          throw new IllegalArgumentException("Unknown node tag in stored chunk: " + tag);
+      }
+    }
   }
 
   /**

@@ -171,38 +171,15 @@ public class InternalNode<K extends BitSequence<K>, V> extends Node<K, V> {
   }
 
   /**
-   * Get the RLP-encoded value of the node.
+   * InternalNodes have no individual persisted representation: they are serialized as part of a
+   * subtree chunk by the CommitVisitor.
    *
-   * @return The RLP-encoded value.
+   * @return Never returns.
    */
   @Override
   public Bytes encode() {
-    K loc =
-        location.orElseThrow(
-            () -> new RuntimeException("Cannot encode InternalNode without location"));
-    Bytes encodedCommitment =
-        commitment.orElseThrow(
-            () -> new RuntimeException("Cannot encode InternalNode without commitment"));
-    Bytes leftExtension;
-    Bytes rightExtension;
-    if (left instanceof StemNode) {
-      BitSequence<K> stem = ((StemNode<K, V>) left).stem;
-      leftExtension = Bytes.wrap(stem.slice(loc.length(), stem.length()).encode());
-    } else {
-      leftExtension = Bytes.EMPTY;
-    }
-    if (right instanceof StemNode) {
-      BitSequence<K> stem = ((StemNode<K, V>) right).stem;
-      rightExtension = Bytes.wrap(stem.slice(loc.length(), stem.length()).encode());
-    } else {
-      rightExtension = Bytes.EMPTY;
-    }
-    return Bytes.concatenate(
-        encodedCommitment,
-        Bytes.of(leftExtension.size()),
-        leftExtension,
-        Bytes.of(rightExtension.size()),
-        rightExtension);
+    throw new UnsupportedOperationException(
+        "InternalNodes are persisted in subtree chunks; see CommitVisitor");
   }
 
   /**
