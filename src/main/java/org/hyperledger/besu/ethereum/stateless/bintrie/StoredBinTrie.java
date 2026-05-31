@@ -16,6 +16,8 @@
 package org.hyperledger.besu.ethereum.stateless.bintrie;
 
 import org.hyperledger.besu.ethereum.stateless.bintrie.factory.NodeFactory;
+import org.hyperledger.besu.ethereum.stateless.bintrie.visitor.CommitVisitor;
+import org.hyperledger.besu.ethereum.trie.NodeUpdater;
 
 /**
  * Implementation of a bintrie Trie with nodes saved in storage.
@@ -35,5 +37,17 @@ public class StoredBinTrie<K extends BitSequence<K>, V> extends SimpleBinTrie<K,
   public StoredBinTrie(final NodeFactory<K, V> nodeFactory) {
     super(nodeFactory.retrieveRoot());
     this.nodeFactory = nodeFactory;
+  }
+
+  /**
+   * Creates the CommitVisitor used to persist the trie, using the same chunk stride as the
+   * NodeFactory the trie is read with.
+   *
+   * @param nodeUpdater The node updater for storing the changes in the Bin Trie.
+   * @return A CommitVisitor.
+   */
+  @Override
+  protected CommitVisitor<K, V> createCommitVisitor(final NodeUpdater nodeUpdater) {
+    return new CommitVisitor<K, V>(nodeUpdater, nodeFactory.getStride());
   }
 }

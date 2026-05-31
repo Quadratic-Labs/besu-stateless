@@ -165,7 +165,21 @@ public class SimpleBinTrie<K extends BitSequence<K>, V> implements BinTrie<K, V>
             });
 
     stemPrunableNodeRegistry.clear();
-    root = root.accept(new CommitVisitor<K, V>(nodeUpdater));
+    root = root.accept(createCommitVisitor(nodeUpdater));
+    if (root instanceof NullNode) {
+      // Clear the root key, so that a stale root chunk or stem pointer is not reloaded.
+      nodeUpdater.store(Bytes.EMPTY, null, null);
+    }
+  }
+
+  /**
+   * Creates the CommitVisitor used to persist the trie.
+   *
+   * @param nodeUpdater The node updater for storing the changes in the Bin Trie.
+   * @return A CommitVisitor.
+   */
+  protected CommitVisitor<K, V> createCommitVisitor(final NodeUpdater nodeUpdater) {
+    return new CommitVisitor<K, V>(nodeUpdater);
   }
 
   /**
