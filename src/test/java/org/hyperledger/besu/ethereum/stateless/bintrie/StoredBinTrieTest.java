@@ -24,8 +24,11 @@ import java.util.function.Function;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
+// Chunk strides under test: 1 stores one internal node per chunk, 3 does not
+// divide the stem size, 248 puts all internal nodes into the root chunk.
 public class StoredBinTrieTest {
   BytesBitSequenceFactory keyFactory;
   StoredNodeFactory<BytesBitSequence, Bytes32> nodeFactory;
@@ -39,12 +42,18 @@ public class StoredBinTrieTest {
     nodeUpdater = new NodeUpdaterMock();
     nodeLoader = new NodeLoaderMock(nodeUpdater.storage);
     valueDeserializer = x -> (Bytes32) x;
-    nodeFactory =
-        new StoredNodeFactory<BytesBitSequence, Bytes32>(nodeLoader, keyFactory, valueDeserializer);
   }
 
-  @Test
-  public void testEmptyTrie() {
+  void createFactory(int stride) {
+    nodeFactory =
+        new StoredNodeFactory<BytesBitSequence, Bytes32>(
+            nodeLoader, keyFactory, valueDeserializer, stride);
+  }
+
+  @ParameterizedTest(name = "stride={0}")
+  @ValueSource(ints = {1, 2, 3, 8, 248})
+  public void testEmptyTrie(int stride) {
+    createFactory(stride);
     StoredBinTrie<BytesBitSequence, Bytes32> trie = new StoredBinTrie<>(nodeFactory);
     trie.commit(nodeUpdater);
 
@@ -52,8 +61,10 @@ public class StoredBinTrieTest {
     assertThat(storedTrie.getRootHash()).isEqualTo(trie.getRootHash());
   }
 
-  @Test
-  public void testOneValue() {
+  @ParameterizedTest(name = "stride={0}")
+  @ValueSource(ints = {1, 2, 3, 8, 248})
+  public void testOneValue(int stride) {
+    createFactory(stride);
     StoredBinTrie<BytesBitSequence, Bytes32> trie = new StoredBinTrie<>(nodeFactory);
     BytesBitSequence key =
         keyFactory.fromHexString(
@@ -69,8 +80,10 @@ public class StoredBinTrieTest {
     assertThat(storedTrie.get(key).orElse(null)).as("Retrieved value").isEqualTo(value);
   }
 
-  @Test
-  public void testDeleteAlreadyDeletedValue() {
+  @ParameterizedTest(name = "stride={0}")
+  @ValueSource(ints = {1, 2, 3, 8, 248})
+  public void testDeleteAlreadyDeletedValue(int stride) {
+    createFactory(stride);
     StoredBinTrie<BytesBitSequence, Bytes32> trie = new StoredBinTrie<>(nodeFactory);
     BytesBitSequence key =
         keyFactory.fromHexString(
@@ -83,8 +96,10 @@ public class StoredBinTrieTest {
     assertThat(trie.getRootHash()).isEqualTo(Bytes32.ZERO);
   }
 
-  @Test
-  public void testTwoValuesAtSameStem() throws Exception {
+  @ParameterizedTest(name = "stride={0}")
+  @ValueSource(ints = {1, 2, 3, 8, 248})
+  public void testTwoValuesAtSameStem(int stride) throws Exception {
+    createFactory(stride);
     StoredBinTrie<BytesBitSequence, Bytes32> trie = new StoredBinTrie<>(nodeFactory);
     BytesBitSequence key1 =
         keyFactory.fromHexString(
@@ -106,8 +121,10 @@ public class StoredBinTrieTest {
     assertThat(storedTrie.get(key2).orElse(null)).isEqualTo(value2);
   }
 
-  @Test
-  public void testTwoValuesAtDifferentIndex() throws Exception {
+  @ParameterizedTest(name = "stride={0}")
+  @ValueSource(ints = {1, 2, 3, 8, 248})
+  public void testTwoValuesAtDifferentIndex(int stride) throws Exception {
+    createFactory(stride);
     StoredBinTrie<BytesBitSequence, Bytes32> trie = new StoredBinTrie<>(nodeFactory);
     BytesBitSequence key1 =
         keyFactory.fromHexString(
@@ -123,18 +140,16 @@ public class StoredBinTrieTest {
     trie.put(key2, value2);
     trie.commit(nodeUpdater);
 
-    System.out.println(trie.toDotTree());
     StoredBinTrie<BytesBitSequence, Bytes32> storedTrie = new StoredBinTrie<>(nodeFactory);
-    System.out.println(storedTrie.toDotTree());
-    storedTrie.getRootHash();
-    System.out.println(storedTrie.toDotTree());
     assertThat(storedTrie.getRootHash()).isEqualTo(trie.getRootHash());
     assertThat(storedTrie.get(key1).orElse(null)).isEqualTo(value1);
     assertThat(storedTrie.get(key2).orElse(null)).isEqualTo(value2);
   }
 
-  @Test
-  public void testTwoValuesWithDivergentStemsAtDepth2() throws Exception {
+  @ParameterizedTest(name = "stride={0}")
+  @ValueSource(ints = {1, 2, 3, 8, 248})
+  public void testTwoValuesWithDivergentStemsAtDepth2(int stride) throws Exception {
+    createFactory(stride);
     StoredBinTrie<BytesBitSequence, Bytes32> trie = new StoredBinTrie<>(nodeFactory);
     BytesBitSequence key1 =
         keyFactory.fromHexString(
@@ -156,8 +171,35 @@ public class StoredBinTrieTest {
     assertThat(storedTrie.get(key2).orElse(null)).isEqualTo(value2);
   }
 
-  @Test
-  public void testDeleteThreeValues() throws Exception {
+  /**
+   * The two keys diverge at bit 8, so internal nodes sit at depths 0 to 8. Storage should hold one
+   * chunk per multiple of the stride in [0, 8], plus one entry per stem.
+   */
+  @ParameterizedTest(name = "stride={0}")
+  @ValueSource(ints = {1, 2, 3, 8, 248})
+  public void testStorageHoldsOneEntryPerChunkAndStem(int stride) throws Exception {
+    createFactory(stride);
+    StoredBinTrie<BytesBitSequence, Bytes32> trie = new StoredBinTrie<>(nodeFactory);
+    trie.put(
+        keyFactory.fromHexString(
+            "0x00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"),
+        Bytes32.fromHexString(
+            "0x1000000000000000000000000000000000000000000000000000000000000000"));
+    trie.put(
+        keyFactory.fromHexString(
+            "0x00ff112233445566778899aabbccddeeff00112233445566778899aabbccddee"),
+        Bytes32.fromHexString(
+            "0x0100000000000000000000000000000000000000000000000000000000000000"));
+    trie.commit(nodeUpdater);
+
+    int expectedChunks = 8 / stride + 1;
+    assertThat(nodeUpdater.storage).hasSize(expectedChunks + 2);
+  }
+
+  @ParameterizedTest(name = "stride={0}")
+  @ValueSource(ints = {1, 2, 3, 8, 248})
+  public void testDeleteThreeValues(int stride) throws Exception {
+    createFactory(stride);
     StoredBinTrie<BytesBitSequence, Bytes32> trie = new StoredBinTrie<>(nodeFactory);
     BytesBitSequence key1 =
         keyFactory.fromHexString(
@@ -186,8 +228,10 @@ public class StoredBinTrieTest {
     assertThat(storedTrie.get(key3).orElse(null)).isEqualTo(value3);
   }
 
-  @Test
-  public void testDeleteThreeValuesWithFlattening() throws Exception {
+  @ParameterizedTest(name = "stride={0}")
+  @ValueSource(ints = {1, 2, 3, 8, 248})
+  public void testDeleteThreeValuesWithFlattening(int stride) throws Exception {
+    createFactory(stride);
     StoredBinTrie<BytesBitSequence, Bytes32> trie = new StoredBinTrie<>(nodeFactory);
     BytesBitSequence key1 =
         keyFactory.fromHexString(
@@ -216,8 +260,10 @@ public class StoredBinTrieTest {
     assertThat(storedTrie.get(key3).orElse(null)).isEqualTo(value3);
   }
 
-  @Test
-  public void testDeleteManyValuesWithDivergentStemsAtDepth2() throws Exception {
+  @ParameterizedTest(name = "stride={0}")
+  @ValueSource(ints = {1, 2, 3, 8, 248})
+  public void testDeleteManyValuesWithDivergentStemsAtDepth2(int stride) throws Exception {
+    createFactory(stride);
     StoredBinTrie<BytesBitSequence, Bytes32> trie = new StoredBinTrie<>(nodeFactory);
 
     assertThat(trie.getRootHash()).isEqualTo(Bytes32.ZERO);
@@ -274,8 +320,39 @@ public class StoredBinTrieTest {
     assertThat(trie2.getRootHash()).isEqualTo(Bytes32.ZERO);
   }
 
-  @Test
-  public void testAddAndRemoveKeysWithMultipleTreeReloads() throws Exception {
+  @ParameterizedTest(name = "stride={0}")
+  @ValueSource(ints = {1, 2, 3, 8, 248})
+  public void testCommitEmptiedTrieClearsRoot(int stride) throws Exception {
+    createFactory(stride);
+    StoredBinTrie<BytesBitSequence, Bytes32> trie = new StoredBinTrie<>(nodeFactory);
+    BytesBitSequence key1 =
+        keyFactory.fromHexString(
+            "0x00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff");
+    Bytes32 value1 =
+        Bytes32.fromHexString("0x1000000000000000000000000000000000000000000000000000000000000000");
+    BytesBitSequence key2 =
+        keyFactory.fromHexString(
+            "0x00ff112233445566778899aabbccddeeff00112233445566778899aabbccddee");
+    Bytes32 value2 =
+        Bytes32.fromHexString("0x0100000000000000000000000000000000000000000000000000000000000000");
+    trie.put(key1, value1);
+    trie.put(key2, value2);
+    trie.commit(nodeUpdater);
+
+    StoredBinTrie<BytesBitSequence, Bytes32> trie2 = new StoredBinTrie<>(nodeFactory);
+    trie2.remove(key1);
+    trie2.remove(key2);
+    trie2.commit(nodeUpdater);
+
+    StoredBinTrie<BytesBitSequence, Bytes32> trie3 = new StoredBinTrie<>(nodeFactory);
+    assertThat(trie3.getRootHash()).isEqualTo(Bytes32.ZERO);
+    assertThat(trie3.get(key1)).isEmpty();
+  }
+
+  @ParameterizedTest(name = "stride={0}")
+  @ValueSource(ints = {1, 2, 3, 8, 248})
+  public void testAddAndRemoveKeysWithMultipleTreeReloads(int stride) throws Exception {
+    createFactory(stride);
     StoredBinTrie<BytesBitSequence, Bytes32> trie = new StoredBinTrie<>(nodeFactory);
     trie.put(
         keyFactory.fromHexString(
@@ -284,7 +361,6 @@ public class StoredBinTrieTest {
             "0x4ff50e1454f9a9f56871911ad5b785b7f9966cce3cb12eb0e989332ae2279213"));
     trie.commit(nodeUpdater);
     Bytes32 expectedRootHash = trie.getRootHash();
-    System.out.println(trie.toDotTree());
 
     StoredBinTrie<BytesBitSequence, Bytes32> trie2 = new StoredBinTrie<>(nodeFactory);
     trie2.put(
@@ -294,7 +370,6 @@ public class StoredBinTrieTest {
             "0x4ff50e1454f9a9f56871911ad5b785b7f9966cce3cb12eb0e989332ae2279213"));
 
     trie2.commit(nodeUpdater);
-    System.out.println(trie2.toDotTree());
 
     StoredBinTrie<BytesBitSequence, Bytes32> trie3 = new StoredBinTrie<>(nodeFactory);
 
@@ -302,7 +377,6 @@ public class StoredBinTrieTest {
         keyFactory.fromHexString(
             "0x117b67dd491b9e11d9cde84ef3c02f11ddee9e18284969dc7d496d43c300e500"));
     trie3.commit(nodeUpdater);
-    System.out.println(trie3.toDotTree());
 
     assertThat(trie3.getRootHash()).isEqualTo(expectedRootHash);
   }
